@@ -115,5 +115,12 @@ extension [LayoutSubviews.Element] {
 }
 
 #Preview {
-    ContentView()
+    @State var tags: [String] = [
+        "SwiftUI", "Swift", "iOS", "Apple", "Xcode", "WWDC", "Android", "React", "Flutter", "App", "Indie", "Developer", "Objc", "C#", "C", "C++", "iPhone", "iPad", "Macbook", "iPadOS", "macOS", "zSwiftUI", "zSwift", "ziOS", "zApple", "zXcode", "zWWDC", "zAndroid", "zReact", "zFlutter", "zApp", "zIndie", "zDeveloper", "zObjc", "zC#", "zC", "zC++", "ziPhone", "ziPad", "zMacbook", "ziPadOS", "zmacOS", "aSwiftUI", "aSwift", "aiOS", "aApple", "aXcode", "aWWDC", "aAndroid"
+    ]
+    @State var selectedTags: [String] = [
+        "SwiftUI", "Swift"
+    ]
+
+    return SelectTagsView(allTags:$tags, selectedTags: $selectedTags)
 }
