@@ -9,16 +9,16 @@ import SwiftUI
 
 struct SelectTagsView: View {
     /// All tags
-    @Binding var allTags: [String]
+    @ObservedObject var allTags: Tags
     /// Selected tags
-    @Binding var selectedTags: [String]
+    @ObservedObject var selectedTags: Tags
     
     /// Adding Matched Geometry Effect
     @Namespace private var animation
     var body: some View {
         VStack(spacing: 0) {
             // Selected Tags View
-            SelectedTagsView(selectedTags: self.$selectedTags, animation: animation)
+            SelectedTagsView(selectedTags: self.selectedTags, animation: animation)
                 .overlay(content: {
                     if selectedTags.isEmpty {
                         Text("Select More than 3 Tags")
@@ -29,7 +29,7 @@ struct SelectTagsView: View {
                 .zIndex(1)
 
             // Unselected Tags View
-            UnselectedTagsView(allTags: self.$allTags, selectedTags: self.$selectedTags, animation: animation)
+            UnselectedTagsView(allTags: self.allTags, selectedTags: self.selectedTags, animation: animation)
                 .zIndex(0)
 
             // Continue button
@@ -58,12 +58,10 @@ struct SelectTagsView: View {
 }
 
 #Preview {
-    @State var tags: [String] = [
-        "SwiftUI", "Swift", "iOS", "Apple", "Xcode", "WWDC", "Android", "React", "Flutter", "App", "Indie", "Developer", "Objc", "C#", "C", "C++", "iPhone", "iPad", "Macbook", "iPadOS", "macOS", "zSwiftUI", "zSwift", "ziOS", "zApple", "zXcode", "zWWDC", "zAndroid", "zReact", "zFlutter", "zApp", "zIndie", "zDeveloper", "zObjc", "zC#", "zC", "zC++", "ziPhone", "ziPad", "zMacbook", "ziPadOS", "zmacOS", "aSwiftUI", "aSwift", "aiOS", "aApple", "aXcode", "aWWDC", "aAndroid"
-    ]
-    @State var selectedTags: [String] = [
+    @ObservedObject var tags = Tags.preview()
+    @ObservedObject var selectedTags = Tags.preview(names: [
         "SwiftUI", "Swift"
-    ]
+    ])
 
-    return SelectTagsView(allTags:$tags, selectedTags: $selectedTags)
+    return SelectTagsView(allTags: tags, selectedTags: selectedTags)
 }

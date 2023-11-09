@@ -8,13 +8,13 @@
 import SwiftUI
 
 struct TagView: View {
-    @State var tag: String
+    @State var tag: Tag
     @State var color: Color
     @State var icon: String
     //(_ tag: String, _ color: Color, _ icon: String) -> some View {
     var body: some View {
         HStack(spacing: 10) {
-            Text(tag)
+            Text(tag.name)
                 .font(.callout)
                 .fontWeight(.semibold)
             Image(systemName: icon)
@@ -31,5 +31,5 @@ struct TagView: View {
 
 
 #Preview {
-    TagView(tag: "Sample Tag", color: .green, icon: "checkmark")
+    TagView(tag: Tag.preview(name:"Sample Tag"), color: .green, icon: "checkmark")
 }

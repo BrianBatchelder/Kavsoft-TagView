@@ -12,6 +12,7 @@ struct TagLayout: Layout {
     var alignment: Alignment = .center
     /// Both Horizontal & Vertical
     var spacing: CGFloat = 10
+    
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let maxWidth = proposal.width ?? 0
         var height: CGFloat = 0
@@ -84,18 +85,15 @@ struct TagLayout: Layout {
                 row.removeAll()
                 /// Resetting X Origin since it needs to start from left to right
                 origin.x = 0
-                row.append(view)
-                /// Updating Origin X
-                origin.x += (viewSize.width + spacing)
-            } else {
-                /// Adding item to Same Row
-                row.append(view)
-                /// Updating Origin X
-                origin.x += (viewSize.width + spacing)
-            }
+            }                
+            
+            /// Append view to  row
+            row.append(view)
+            /// Updating Origin X
+            origin.x += (viewSize.width + spacing)
         }
         
-        /// Checking for any exhaust row
+        /// Checking for an extra row
         if !row.isEmpty {
             rows.append(row)
             row.removeAll()
@@ -115,12 +113,11 @@ extension [LayoutSubviews.Element] {
 }
 
 #Preview {
-    @State var tags: [String] = [
-        "SwiftUI", "Swift", "iOS", "Apple", "Xcode", "WWDC", "Android", "React", "Flutter", "App", "Indie", "Developer", "Objc", "C#", "C", "C++", "iPhone", "iPad", "Macbook", "iPadOS", "macOS", "zSwiftUI", "zSwift", "ziOS", "zApple", "zXcode", "zWWDC", "zAndroid", "zReact", "zFlutter", "zApp", "zIndie", "zDeveloper", "zObjc", "zC#", "zC", "zC++", "ziPhone", "ziPad", "zMacbook", "ziPadOS", "zmacOS", "aSwiftUI", "aSwift", "aiOS", "aApple", "aXcode", "aWWDC", "aAndroid"
-    ]
-    @State var selectedTags: [String] = [
-        "SwiftUI", "Swift"
-    ]
-
-    return SelectTagsView(allTags:$tags, selectedTags: $selectedTags)
+    @State var tags = Tags.preview()
+    
+    return TagLayout(alignment: .center, spacing: 5) {
+        ForEach(tags.tags, id: \.self) { tag in
+            TagView(tag:tag, color:.blue, icon:"plus")
+        }
+    }
 }

@@ -8,18 +8,19 @@
 import SwiftUI
 
 struct SelectedTagsView: View {
-    @Binding var selectedTags: [String]
+    @ObservedObject var selectedTags: Tags
     let animation: Namespace.ID
     
     var body: some View {
         ScrollView(.horizontal) {
             HStack(spacing: 12) {
-                ForEach(selectedTags, id: \.self) { tag in
+                ForEach(selectedTags.tags) { tag in
                     TagView(tag: tag, color:.pink, icon:"checkmark")
-                        .matchedGeometryEffect(id: tag, in: animation)
+                        .matchedGeometryEffect(id: tag.id, in: animation)
                         .onTapGesture {
                             withAnimation(.snappy) {
-                                selectedTags.removeAll(where: { $0 == tag })
+                                BDBLog.log("SelectedTagsView: unselect tag \(tag.name)")
+                                selectedTags.remove(tag)
                             }
                         }
                 }
@@ -35,10 +36,10 @@ struct SelectedTagsView: View {
 }
 
 #Preview {
-    @State var selectedTags: [String] = [
+    @ObservedObject var selectedTags = Tags.preview(names: [
         "SwiftUI", "Swift", "iOS", "Apple"
-    ]
+    ])
     @Namespace var animation
 
-    return SelectedTagsView(selectedTags: $selectedTags, animation: animation)
+    return SelectedTagsView(selectedTags: selectedTags, animation: animation)
 }
