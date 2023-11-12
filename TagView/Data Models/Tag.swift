@@ -7,17 +7,29 @@
 
 import Foundation
 
-class Tag: Identifiable {
+class Tag: Identifiable, ObservableObject {
     var name: String
     var children: [ Tag ]
     var parent: Tag?
     
+    @Published var expanded = false
+    
+    var isLeaf: Bool { self.children.count == 0 }
+
     let id = UUID()
     
     init(name: String, parent: Tag? = nil, children: [ Tag ] = []) {
         self.name = name
         self.parent = parent
         self.children = children
+
+        if let parent = parent {
+            parent.addChild(self)
+        }
+    }
+    
+    func addChild(_ child: Tag) {
+        children.append(child)
     }
 }
 

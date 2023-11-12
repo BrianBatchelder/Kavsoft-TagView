@@ -8,10 +8,11 @@
 import SwiftUI
 
 struct TagView: View {
-    @State var tag: Tag
-    @State var color: Color
-    @State var icon: String
-    //(_ tag: String, _ color: Color, _ icon: String) -> some View {
+    @State private var tag: Tag
+    @State private var parentColor: Color
+    @State private var leafColor: Color
+    @State private var icon: String
+
     var body: some View {
         HStack(spacing: 10) {
             Text(tag.name)
@@ -24,12 +25,19 @@ struct TagView: View {
         .padding(.horizontal, 15)
         .background {
             Capsule()
-                .fill(color.gradient)
+                .fill(tag.isLeaf ? leafColor.gradient : parentColor.gradient)
         }
+    }
+    
+    init(tag: Tag, parentColor: Color, leafColor: Color, icon: String) {
+        self.tag = tag
+        self.parentColor = parentColor
+        self.leafColor = leafColor
+        self.icon = icon
     }
 }
 
 
 #Preview {
-    TagView(tag: Tag.preview(name:"Sample Tag"), color: .green, icon: "checkmark")
+    TagView(tag: Tag.preview(name:"Sample Tag"), parentColor: .green, leafColor: .blue, icon: "checkmark")
 }

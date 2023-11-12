@@ -8,20 +8,31 @@
 import SwiftUI
 
 struct UnselectedTagsView: View {
-    @ObservedObject var allTags: Tags
-    @ObservedObject var selectedTags: Tags
+    @StateObject private var viewModel: UnselectedTagsViewModel
+
     let animation: Namespace.ID
     
+    let id = UUID()
+
     var body: some View {
         ScrollView(.vertical) {
             TagLayout(alignment: .center, spacing: 5) {
-                ForEach(allTags.without(otherTags: selectedTags).tags, id: \.self) { tag in
-                    TagView(tag:tag, color:.blue, icon:"plus")
+                ForEach(viewModel.unselectedTags.filter({$0.parent == nil || $0.parent!.expanded}), id: \.self) { tag in
+                    // logV(id, tag.expanded ? "\(tag.name) is expanded" : "\(tag.name) is not expanded")
+                    TagView(tag:tag, parentColor: .green, leafColor:.blue, icon:"plus")
                         .matchedGeometryEffect(id: tag.id, in: animation)
                         .onTapGesture {
                             withAnimation(.snappy) {
-                                BDBLog.log("UnselectedTagsView: select tag \(tag.name)")
-                                selectedTags.insert(tag, at: 0)
+                                log(id, "UnselectedTagsView: select tag \(tag.name)")
+                                if (tag.children.count == 0) {
+                                    viewModel.insertSelectedTag(tag, at: 0)
+                                } else {
+                                    // expand or collapse view to show children
+                                    // REVISIT: Isn't triggering a redraw
+                                    log(id, "UnselectedTagsView: expand / collapse parent tag \(tag.name)")
+                                    tag.expanded = !tag.expanded
+                                }
+                                
                             }
                         }
                 }
@@ -32,13 +43,16 @@ struct UnselectedTagsView: View {
 //        .scrollIndicators(.hidden)
         .background(.black.opacity(0.05))
     }
+    
+    init(allTags: Tags, selectedTags: Tags, animation: Namespace.ID) {
+        self._viewModel = StateObject(wrappedValue: UnselectedTagsViewModel(allTags: allTags, selectedTags: selectedTags))
+        self.animation = animation
+    }
 }
 
 #Preview {
     @ObservedObject var tags = Tags.preview()
-    @ObservedObject var selectedTags = Tags.preview(names: [
-        "SwiftUI", "Swift", "iOS", "Apple"
-    ])
+    @ObservedObject var selectedTags = Tags.preview(length: 4)
     /// Adding Matched Geometry Effect
     @Namespace  var animation
 

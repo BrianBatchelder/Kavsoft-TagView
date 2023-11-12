@@ -8,19 +8,22 @@
 import SwiftUI
 
 struct SelectedTagsView: View {
-    @ObservedObject var selectedTags: Tags
+    @StateObject private var viewModel: SelectedTagsViewModel
+    
     let animation: Namespace.ID
     
+    let id = UUID()
+
     var body: some View {
         ScrollView(.horizontal) {
             HStack(spacing: 12) {
-                ForEach(selectedTags.tags) { tag in
-                    TagView(tag: tag, color:.pink, icon:"checkmark")
+                ForEach(viewModel.selectedTags.tags) { tag in
+                    TagView(tag: tag, parentColor: .green, leafColor:.pink, icon:"checkmark")
                         .matchedGeometryEffect(id: tag.id, in: animation)
                         .onTapGesture {
                             withAnimation(.snappy) {
-                                BDBLog.log("SelectedTagsView: unselect tag \(tag.name)")
-                                selectedTags.remove(tag)
+                                log(id, "SelectedTagsView: unselect tag \(tag.name)")
+                                viewModel.selectedTags.remove(tag)
                             }
                         }
                 }
@@ -33,12 +36,15 @@ struct SelectedTagsView: View {
 //        .scrollIndicators(.hidden)
         .background(.white)
     }
+    
+    init(selectedTags: Tags, animation: Namespace.ID) {
+        self._viewModel = StateObject(wrappedValue: SelectedTagsViewModel(selectedTags: selectedTags))
+        self.animation = animation
+    }
 }
 
 #Preview {
-    @ObservedObject var selectedTags = Tags.preview(names: [
-        "SwiftUI", "Swift", "iOS", "Apple"
-    ])
+    @ObservedObject var selectedTags = Tags.preview(length: 4)
     @Namespace var animation
 
     return SelectedTagsView(selectedTags: selectedTags, animation: animation)

@@ -117,7 +117,7 @@ extension [LayoutSubviews.Element] {
     
     return TagLayout(alignment: .center, spacing: 5) {
         ForEach(tags.tags, id: \.self) { tag in
-            TagView(tag:tag, color:.blue, icon:"plus")
+            TagView(tag:tag, parentColor:.green, leafColor: .blue, icon:"plus")
         }
     }
 }

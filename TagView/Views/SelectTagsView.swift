@@ -7,20 +7,18 @@
 
 import SwiftUI
 
-struct SelectTagsView: View {
-    /// All tags
-    @ObservedObject var allTags: Tags
-    /// Selected tags
-    @ObservedObject var selectedTags: Tags
-    
+struct SelectTagsView: View {    
+    @StateObject private var viewModel: SelectTagsViewModel
+
     /// Adding Matched Geometry Effect
     @Namespace private var animation
+    
     var body: some View {
         VStack(spacing: 0) {
             // Selected Tags View
-            SelectedTagsView(selectedTags: self.selectedTags, animation: animation)
+            SelectedTagsView(selectedTags: viewModel.selectedTags, animation: animation)
                 .overlay(content: {
-                    if selectedTags.isEmpty {
+                    if viewModel.countOfSelectedTags == 0 {
                         Text("Select More than 3 Tags")
                             .font(.callout)
                             .foregroundStyle(.gray)
@@ -29,7 +27,7 @@ struct SelectTagsView: View {
                 .zIndex(1)
 
             // Unselected Tags View
-            UnselectedTagsView(allTags: self.allTags, selectedTags: self.selectedTags, animation: animation)
+            UnselectedTagsView(allTags: viewModel.allTags, selectedTags: viewModel.selectedTags, animation: animation)
                 .zIndex(0)
 
             // Continue button
@@ -46,8 +44,8 @@ struct SelectTagsView: View {
                         }
                 })
                 /// Disabling until 3 or more tags selected
-                .disabled(selectedTags.count < 3)
-                .opacity(selectedTags.count < 3 ? 0.5 : 1)
+                .disabled(viewModel.countOfSelectedTags < 3)
+                .opacity(viewModel.countOfSelectedTags < 3 ? 0.5 : 1)
                 .padding()
             }
             .background(.white)
@@ -55,13 +53,15 @@ struct SelectTagsView: View {
         }
         .preferredColorScheme(.light)
     }
+    
+    init(allTags: Tags, selectedTags: Tags) {
+        self._viewModel = StateObject(wrappedValue: SelectTagsViewModel(allTags: allTags, selectedTags: selectedTags))
+    }
 }
 
 #Preview {
     @ObservedObject var tags = Tags.preview()
-    @ObservedObject var selectedTags = Tags.preview(names: [
-        "SwiftUI", "Swift"
-    ])
+    @ObservedObject var selectedTags = Tags.preview(length: 2)
 
     return SelectTagsView(allTags: tags, selectedTags: selectedTags)
 }
