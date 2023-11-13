@@ -25,7 +25,8 @@ class SelectTagsViewModel: ObservableObject {
         self.allTags = allTags
         self.selectedTags = selectedTags
  
-        allTagsCancellable = allTags.objectWillChange.sink(receiveValue: {           self.log(self.id,"all tags changed")
+        allTagsCancellable = allTags.objectWillChange.sink(receiveValue: {           
+            self.log(self.id,"all tags changed")
             self.objectWillChange.send()
         })
         selectedTagsCancellable = selectedTags.objectWillChange.sink(receiveValue:{

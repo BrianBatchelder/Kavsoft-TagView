@@ -14,12 +14,13 @@ struct UnselectedTagsView: View {
     
     let id = UUID()
 
+    // REVISIT: Figure out how to show the hierarchy of the tags
     var body: some View {
         ScrollView(.vertical) {
             TagLayout(alignment: .center, spacing: 5) {
                 ForEach(viewModel.unselectedTags.filter({$0.parent == nil || $0.parent!.expanded}), id: \.self) { tag in
                     // logV(id, tag.expanded ? "\(tag.name) is expanded" : "\(tag.name) is not expanded")
-                    TagView(tag:tag, parentColor: .green, leafColor:.blue, icon:"plus")
+                    TagView(tag:tag, parentColor: .green, leafColor:.blue, parentIcon:"chevron.down", parentIconExpanded:"chevron.up", leafIcon:"plus")
                         .matchedGeometryEffect(id: tag.id, in: animation)
                         .onTapGesture {
                             withAnimation(.snappy) {
@@ -28,7 +29,6 @@ struct UnselectedTagsView: View {
                                     viewModel.insertSelectedTag(tag, at: 0)
                                 } else {
                                     // expand or collapse view to show children
-                                    // REVISIT: Isn't triggering a redraw
                                     log(id, "UnselectedTagsView: expand / collapse parent tag \(tag.name)")
                                     tag.expanded = !tag.expanded
                                 }

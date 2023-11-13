@@ -10,9 +10,9 @@ import Combine
 
 class UnselectedTagsViewModel: ObservableObject {
     /// All tags
-    @ObservedObject var allTags: Tags
+    @ObservedObject private var allTags: Tags
     /// Selected tags
-    @ObservedObject var selectedTags: Tags
+    @ObservedObject private var selectedTags: Tags
     
     var unselectedTags: [ Tag ] { allTags.tags.filter({ !selectedTags.tags.contains($0) }) }
     

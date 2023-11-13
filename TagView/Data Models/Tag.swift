@@ -8,14 +8,20 @@
 import Foundation
 
 class Tag: Identifiable, ObservableObject {
-    var name: String
-    var children: [ Tag ]
-    var parent: Tag?
+    @Published var name: String
+    @Published var children: Array<Tag>
+    @Published var parent: Tag?
     
-    @Published var expanded = false
-    
-    var isLeaf: Bool { self.children.count == 0 }
+    @Published var expanded = false {
+        willSet {
+            log("willSet expanded \(expanded)")
+            self.objectWillChange.send()
+        }
+    }
 
+    var isLeaf: Bool { self.children.count == 0 }
+    var hasParent: Bool { self.parent != nil }
+    
     let id = UUID()
     
     init(name: String, parent: Tag? = nil, children: [ Tag ] = []) {
@@ -30,6 +36,14 @@ class Tag: Identifiable, ObservableObject {
     
     func addChild(_ child: Tag) {
         children.append(child)
+    }
+    
+    func expandParents() {
+        var parentTag = parent
+        while parentTag != nil {
+            parentTag!.expanded = true
+            parentTag = parentTag!.parent
+        }
     }
 }
 

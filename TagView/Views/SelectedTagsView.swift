@@ -18,12 +18,13 @@ struct SelectedTagsView: View {
         ScrollView(.horizontal) {
             HStack(spacing: 12) {
                 ForEach(viewModel.selectedTags.tags) { tag in
-                    TagView(tag: tag, parentColor: .green, leafColor:.pink, icon:"checkmark")
+                    TagView(tag: tag, parentColor: .pink, leafColor: .pink, parentIcon:"checkmark", parentIconExpanded:"checkmark", leafIcon:"checkmark")
                         .matchedGeometryEffect(id: tag.id, in: animation)
                         .onTapGesture {
                             withAnimation(.snappy) {
                                 log(id, "SelectedTagsView: unselect tag \(tag.name)")
                                 viewModel.selectedTags.remove(tag)
+                                tag.expandParents()
                             }
                         }
                 }

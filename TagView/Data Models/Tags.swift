@@ -6,9 +6,15 @@
 //
 
 import Foundation
+import Combine
+
+struct CancellableByTag {
+    var cancellable: AnyCancellable
+    var tagId: UUID
+}
 
 class Tags: ObservableObject {
-    @Published var tags: [ Tag ]
+    @Published var tags: Array<Tag>
     
     var count: Int {
         return self.tags.count
@@ -19,38 +25,56 @@ class Tags: ObservableObject {
     }
 
     let id = UUID()
+    private var cancellables = [CancellableByTag]()
 
     init(names: [ String ]? = nil) {
-        tags = []
+        self.tags = [ Tag ]()
         if let names = names {
             log(id, "Adding names")
             add(names)
         }
+
+        // forward changes to any tag to observers
+        self.tags.forEach { tag in
+            let cancellable = CancellableByTag(cancellable: tag.objectWillChange.sink(receiveValue: { _ in self.objectWillChange.send() }), tagId: tag.id)
+            cancellables.append(cancellable)
+        }
+
         log(id, "Initialized")
     }
     
     convenience init(originalTags: Tags) {
         self.init()
-        tags.append(contentsOf: originalTags.tags)
+        self.tags.append(contentsOf: originalTags.tags)
+        // REVISIT: Need to observe changes to each tag
     }
     
     convenience init(originalTags: [ Tag ]) {
         self.init()
-        tags.append(contentsOf: originalTags)
+        self.tags.append(contentsOf: originalTags)
+        // REVISIT: Need to observe changes to each tag
     }
     
     func add(_ tag: Tag) {
         self.tags.append(tag)
+        // REVISIT: Need to observe changes to tag
     }
 
     func add(_ tags: [ Tag ]) {
         self.tags.append(contentsOf: tags)
+        // REVISIT: Need to observe changes to each tag
     }
     
     func add(_ tagName: String) {
+        // REVISIT: Need to observe changes to each tag
+        log(id, "Adding tag(s) named \(tagName)")
         // parse tag into parent and children (array of hierarchical tags)
         let tagLevels = Self.parse(name: tagName)
         if (tagLevels.count <= 1) {
+            // root tag
+            if getTag(name: tagName, parentTag: nil) != nil {
+                return
+            }
             let tag = Tag(name: tagName)
             add(tag)
             
@@ -59,7 +83,15 @@ class Tags: ObservableObject {
         
         var parentTag: Tag? = nil
         for tagLevel in tagLevels {
-            let tag = Tag(name: String(tagLevel), parent: parentTag)
+            let tagLevel = String(tagLevel)
+            if let tag = getTag(name: tagLevel, parentTag: parentTag) {
+                log(id, "Tag \(tagName) already exists under parentTag \(parentTag == nil ? "root" : "\(parentTag!.name)")")
+                parentTag = tag
+                continue
+            }
+            
+            log(id, "Creating tag \(tagLevel) under parent tag \(parentTag == nil ? "root" : "\(parentTag!.name)")")
+            let tag = Tag(name: tagLevel, parent: parentTag)
             add(tag)
             
             parentTag = tag
@@ -73,17 +105,19 @@ class Tags: ObservableObject {
     }
     
     func remove(_ tag: Tag) {
-        tags.removeAll(where: { $0.id == tag.id })
+        self.tags.removeAll(where: { $0.id == tag.id })
+        // REVISIT: Need to stop observing changes to tag
     }
     
     func insert(_ tag: Tag, at: Int) {
         log(id, "Inserting tag \(tag.name) at position \(at).")
-//        objectWillChange.send()
-        tags.insert(tag, at: at)
+        self.tags.insert(tag, at: at)
+        // REVISIT: Need to observe changes to tag
     }
     
     func removeAll(name: String) {
-        tags.removeAll(where: { $0.name == name })
+        self.tags.removeAll(where: { $0.name == name })
+        // REVISIT: Need to stop observing changes to each tag
     }
     
     func without(otherTags: Tags) -> Tags {
@@ -110,6 +144,16 @@ class Tags: ObservableObject {
         }
         return expandedTags
     }
+    
+    func getTag(name: String, parentTag: Tag?) -> Tag? {
+        if let parentTag = parentTag {
+            log(id, "Looking for tag \(name) under parentTag \(parentTag.name)")
+            return parentTag.children.filter({ $0.name == name }).first
+        } else {
+            log(id, "Looking for tag \(name) in root")
+            return tags.filter({ $0.parent == nil && $0.name == name}).first
+        }
+    }
 }
 
 extension Tags {
@@ -125,7 +169,7 @@ extension Tags {
 // MARK: Preview
 extension Tags {
     static let previewTagNames: [String] = [
-        "Parent/Child", "SwiftUI", "Swift", "iOS", "Apple", "Xcode", "WWDC", "Android", "React", "Flutter", "App", "Indie", "Developer", "Objc", "C#", "C", "C++", "iPhone", "iPad", "Macbook", "iPadOS", "macOS", "zSwiftUI", "zSwift", "ziOS", "zApple", "zXcode", "zWWDC", "zAndroid", "zReact", "zFlutter", "zApp", "zIndie", "zDeveloper", "zObjc", "zC#", "zC", "zC++", "ziPhone", "ziPad", "zMacbook", "ziPadOS", "zmacOS", "aSwiftUI", "aSwift", "aiOS", "aApple", "aXcode", "aWWDC", "aAndroid",
+        "Parent/Child 1", "Parent/Child 2/Grandchild", "SwiftUI", "Swift", "iOS", "Apple", "Xcode", "WWDC", "Android", "React", "Flutter", "App", "Indie", "Developer", "Objc", "C#", "C", "C++", "iPhone", "iPad", "Macbook", "iPadOS", "macOS", "zSwiftUI", "zSwift", "ziOS", "zApple", "zXcode", "zWWDC", "zAndroid", "zReact", "zFlutter", "zApp", "zIndie", "zDeveloper", "zObjc", "zC#", "zC", "zC++", "ziPhone", "ziPad", "zMacbook", "ziPadOS", "zmacOS", "aSwiftUI", "aSwift", "aiOS", "aApple", "aXcode", "aWWDC", "aAndroid",
     ]
 
     class func preview(names: [String]? = nil) -> Tags {
